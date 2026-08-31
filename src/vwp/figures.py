@@ -49,10 +49,11 @@ def seuil(table, dossier: Path = DOSSIER) -> list[Path]:
                 color=OKABE_ITO[i], label=fenetre)
     ax.axhline(0, color=GRIS, lw=1.1, ls="--")
     ax.axvline(1.0, color=GRIS, lw=0.9, ls=":")
-    ax.annotate("un cent, l'écart usuel entre\nles meilleurs prix sur ce fonds", (1.0, 0.30),
+    ax.annotate("un cent par passage,\nrepère de lecture", (1.0, 0.30),
                 textcoords="offset points", xytext=(8, 0), fontsize=8, color=GRIS)
     ax.set_xlabel("glissement facturé par passage de marché, en cents")
     ax.set_ylabel("rendement annualisé")
+    ax.xaxis.set_major_formatter(formateur(decimales=2))
     ax.yaxis.set_major_formatter(formateur(decimales=0, suffixe=" %", facteur=100))
     ax.legend(fontsize=8, ncols=2, frameon=False, loc="lower center", bbox_to_anchor=(0.5, 1.01))
     return _fin(fig, "seuil", dossier)
@@ -68,7 +69,8 @@ def conventions(table, publie: float, dossier: Path = DOSSIER) -> list[Path]:
     y = np.arange(len(t))
     ax.barh(y, t["rendement_total"], color=OKABE_ITO[0], height=0.66)
     ax.axvline(publie, color=OKABE_ITO[3], lw=1.4, ls="--")
-    ax.annotate("publié", (publie, len(t) - 0.35), textcoords="offset points", xytext=(6, 0),
+    # l'étiquette se pose sur la barre la plus haute : au-dessus, elle sortirait du cadre
+    ax.annotate("publié", (publie, len(t) - 1), textcoords="offset points", xytext=(-40, 26),
                 fontsize=8.5, color=OKABE_ITO[3])
     for k, v in enumerate(t["rendement_total"]):
         ax.text(v, k, "  " + fr(100 * v, 0) + " %", va="center", fontsize=8.5, color=GRIS)
@@ -105,10 +107,12 @@ def placebo(table, dossier: Path = DOSSIER) -> list[Path]:
                                      for d in table["decalage_de_seances"][1:]]
     axes[0].bar(x, table["sharpe"], color=[OKABE_ITO[0]] + [OKABE_ITO[4]] * (len(table) - 1))
     axes[0].set_ylabel("ratio de Sharpe")
+    axes[0].yaxis.set_major_formatter(formateur(decimales=2))
     axes[0].set_title("Ce que le décalage laisse", fontsize=10)
     axes[1].bar(x, table["changements_par_jour"],
                 color=[OKABE_ITO[0]] + [OKABE_ITO[4]] * (len(table) - 1))
     axes[1].set_ylabel("changements de position par jour")
+    axes[1].yaxis.set_major_formatter(formateur(decimales=0))
     axes[1].set_title("Et ce qu'il fait à l'activité", fontsize=10)
     for ax in axes:
         ax.set_xticks(x, etiquettes, fontsize=8.5)

@@ -3,9 +3,10 @@
 QQQ suit le Nasdaq 100, TQQQ promet trois fois sa variation quotidienne. L'article emploie les deux,
 et le second porte son chiffre le plus spectaculaire.
 
-Le flux consolidé, en prix bruts, pour les raisons dites dans le client partagé : le flux IEX ne
-capte que 1,81 % du volume et manque 57 % des minutes, et l'ajustement des dividendes diffère d'un
-fournisseur à l'autre.
+Le flux consolidé, le ruban qui rassemble les transactions de toutes les places américaines, en
+prix bruts. Le flux gratuit d'IEX ne porte que 1,37 % du volume consolidé de QQQ, mesuré non pas
+ici mais dans le dépôt voisin 24-vwap-iex-vs-consolide. L'ajustement des dividendes diffère en
+outre d'un fournisseur à l'autre, ce qui écarte les prix ajustés.
 """
 
 from __future__ import annotations

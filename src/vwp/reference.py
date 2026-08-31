@@ -2,8 +2,8 @@
 
 **L'article.** Carlo Zarattini et Andrew Aziz, « Volume Weighted Average Price (VWAP): The Holy
 Grail for Day Trading Systems », 13 novembre 2023, SSRN 4631351. Le PDF est en libre accès sur le
-site du premier auteur, `concretumgroup.com`, ce qui contredit la note du registre du portefeuille
-qui le croyait inaccessible aux scripts : mesuré le 30 août 2026, 1 012 421 octets, 26 pages.
+site du premier auteur, `concretumgroup.com`, alors que SSRN renvoie 403 aux scripts : mesuré le
+30 août 2026, 1 012 421 octets, 26 pages.
 
 **Les règles, telles que la section 3 les énonce.**
 

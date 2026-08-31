@@ -16,15 +16,20 @@ plus que ne rapporte le fonds sur toute la période.
 
 **Une subtilité que l'article ne relève pas.** À la première barre, la moyenne pondérée n'a qu'une
 observation : elle **est** le prix de cette barre. Avec la convention de la clôture, la comparaison
-annoncée pour 9 h 31 donne donc exactement zéro, et la position ne peut se prendre qu'à 9 h 32. Avec
+annoncée pour 9 h 31 donne donc zéro sur 1 335 des 1 428 séances de la fenêtre de l'article, et la
+position ne s'y prend qu'à 9 h 32. Sur les 93 autres, la division laisse un résidu d'au plus
+5,7 × 10⁻¹⁴ dollar, le dernier bit d'un prix en virgule flottante, et non un signal. Avec
 la convention des extrêmes, l'égalité se brise selon la place de la clôture dans la barre, et la
 position se prend bien à l'heure dite. C'est une des raisons pour lesquelles les trois conventions
 ne donnent pas le même résultat.
 
-**Le glissement, que l'article met à zéro.** Passer d'une position à l'autre demande de vendre le
+**Le glissement, que l'article met à zéro.** Le glissement, l'écart entre le prix visé et le prix
+réellement obtenu, se paie à chaque passage. Passer d'une position à l'autre demande de vendre le
 double de ce qu'on détient. La stratégie le fait seize fois par jour en moyenne. Facturer chaque
-passage d'un demi-cent, moins que l'écart usuel entre les meilleurs prix acheteur et vendeur sur ce
-fonds, suffit à ramener le rendement de l'article au tiers.
+passage d'un demi-cent suffit à ramener le rendement de l'article au tiers.
+
+**La commission, elle, est celle de l'article.** Il déclare 0,0005 $ par action, et tous les
+résultats de ce dépôt la portent. Ce qui est mis à zéro puis facturé ici, c'est le glissement seul.
 """
 
 from __future__ import annotations
@@ -36,24 +41,31 @@ import pandas as pd
 
 OUVERTURE = pd.Timestamp("09:30").time()
 FERMETURE = pd.Timestamp("16:00").time()
-BARRES_ATTENDUES = 390
+BARRES_MINIMALES = 390
+GRILLE_COMPLETE = 391
 SEANCES_PAR_AN = 252
 PRIX_DE_LA_MOYENNE = {"cloture": "cloture", "typique": None, "barre": "prix_moyen"}
 
 
 def seances(barres: pd.DataFrame, fuseau: str = "America/New_York") -> pd.DataFrame:
-    """Les barres de la séance régulière, séances écourtées retirées.
+    """Les barres de la séance régulière, séances incomplètes retirées.
 
-    Les séances de veille de congé ferment à 13 h. Les garder mélangerait une journée de six heures
-    et demie avec une de trois heures et demie, alors que la stratégie tient sa position jusqu'à la
-    clôture, quelle qu'elle soit.
+    La grille d'une séance régulière tient 391 minutes, de celle de 9 h 30 à celle de 16 h 00, qui
+    recueille l'impression de clôture. Le filtre en exige au moins 390, donc il tolère une minute
+    manquante et une seule. Sur QQQ toutes les séances gardées portent les 391 ; sur TQQQ, moins
+    échangé, 67 d'entre elles n'en portent que 390.
+
+    Il retire donc deux choses que rien ne distingue ici. Les séances de veille de congé, qui
+    ferment à 13 h : les garder mélangerait une journée de six heures et demie avec une de trois
+    heures et demie. Et les séances pleines qu'une interruption a trouées, dont les quatre de
+    mars 2020. `etudes.sensibilites` mesure ce que coûte ce second retrait, et le README le publie.
     """
     table = barres.copy()
     table["local"] = table["horodatage"].dt.tz_convert(fuseau)
     heure = table["local"].dt.time
     table = table[(heure >= OUVERTURE) & (heure <= FERMETURE)].copy()
     table["seance"] = table["local"].dt.date
-    complet = table.groupby("seance")["cloture"].transform("size") >= BARRES_ATTENDUES
+    complet = table.groupby("seance")["cloture"].transform("size") >= BARRES_MINIMALES
     return table[complet].copy()
 
 
@@ -97,6 +109,9 @@ def signaux(table: pd.DataFrame, convention: str = "cloture",
         decale = journalier.shift(decalage_de_placebo).stack()
         sortie["vwap"] = decale.reindex(
             pd.MultiIndex.from_arrays([sortie["seance"], rang])).to_numpy()
+        # les premières séances n'ont pas de moyenne à leur disposition : les mettre à plat les
+        # ferait compter comme des séances sans position, elles sortent donc de l'échantillon
+        sortie = sortie[sortie["vwap"].notna()].copy()
     sortie["signal"] = np.sign(sortie["cloture"] - sortie["vwap"])
     groupes = sortie.groupby("seance")
     # la position tenue pendant une minute vient du signal de la minute précédente : agir sur le
@@ -143,9 +158,13 @@ def rejouer(table: pd.DataFrame, capital_initial: float = 25_000.0,
     """La stratégie rejouée minute par minute, capital composé.
 
     Le capital entier est engagé à chaque instant, donc le nombre d'actions détenues change avec le
-    capital : c'est ce que l'article appelle « 100 % of available funds ». Un changement de position
-    fait passer de plus une à moins une unité de capital, donc échange **deux fois** le nombre
-    d'actions détenues, et se facture en conséquence.
+    capital : c'est ce que l'article appelle « 100 % of available funds ». Un renversement fait passer
+    de plus une à moins une unité de capital, donc échange **deux fois** le nombre d'actions
+    détenues, et se facture en conséquence.
+
+    Deux passages n'échangent, eux, qu'une fois : la première prise du matin, qui part de zéro et
+    compte dans `changements_par_jour`, et le solde du soir, facturé hors de la boucle et hors de ce
+    compte. La facturation suit dans tous les cas l'écart de position, `|position moins précédente|`.
     """
     cout_par_action = commission_par_action + glissement_cents / 100.0
     capital = capital_initial
@@ -181,7 +200,7 @@ def rejouer(table: pd.DataFrame, capital_initial: float = 25_000.0,
 
 
 def achat_et_conservation(table: pd.DataFrame, capital_initial: float = 25_000.0) -> Resultat:
-    """Le point de comparaison de l'article : acheter le fonds et ne rien faire."""
+    """Le repère passif de l'article : acheter le fonds et ne rien faire."""
     clotures = table.groupby("seance")["cloture"].last()
     courbe = capital_initial * clotures / clotures.iloc[0]
     return Resultat(courbe=courbe, changements_par_jour=0.0, commission_payee=0.0,
