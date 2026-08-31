@@ -1,0 +1,10 @@
+{
+  "publie_total": 6.71,
+  "recalcule_total": 5.873225907709917,
+  "recalcule_sharpe": 2.010680705242831,
+  "changements_par_jour": 15.918067226890756,
+  "seuil_dans_l_echantillon_cents": 1.0541862247313039,
+  "seuil_apres_publication_cents": 0.41812311676677877,
+  "annualise_dans_l_echantillon": 0.40518733485979586,
+  "annualise_apres_publication": 0.07015731047937113
+}

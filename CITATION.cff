@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+title: "Le signal VWAP de Zarattini et Aziz, rejoué : ce que le glissement lui coûte, et ce qui en reste après publication"
+message: "Si vous utilisez ce dépôt, citez-le comme suit."
+type: software
+authors:
+  - family-names: Vaudescal
+    given-names: Guillaume
+repository-code: "https://github.com/Guilou001/21-vwap-intrajournalier"
+license: MIT
+version: 1.0.0
+date-released: "2026-08-31"
+references:
+  - type: article
+    title: "Volume Weighted Average Price (VWAP): The Holy Grail for Day Trading Systems"
+    authors:
+      - family-names: Zarattini
+        given-names: Carlo
+      - family-names: Aziz
+        given-names: Andrew
+    year: 2023
+    url: "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4631351"
