@@ -82,7 +82,7 @@ _Summary in English. Zarattini and Aziz (SSRN 4631351) report that a VWAP trend-
 
 #quote(block: true)[Since we initiated our system with a small account of only \$25,000, we assumed *no slippage* in our order fills.]
 
-Une stratégie qui change de position seize fois par jour paie seize écarts entre les meilleurs prix acheteur et vendeur. La question du dépôt est de savoir combien.
+Une stratégie qui change de position seize fois par jour franchit seize fois l'écart entre les meilleurs prix acheteur et vendeur. La question du dépôt est de savoir ce que ce franchissement coûte.
 
 *Ce que l'article facture, en revanche.* Il déclare une commission de 0,0005 \$ par action, le tarif qu'il attribue à Interactive Brokers. Tous les résultats de ce dépôt la portent, sans exception. Quand une ligne dit « aucun glissement », elle dit bien le glissement seul.
 
@@ -198,7 +198,7 @@ Comment lire ce tableau, en trois constats. Le premier est que la mécanique est
 
 Comment lire cette figure : une barre par convention, et le trait vertical marque le rendement publié. Les trois barres s'arrêtent avant ce trait, aucune ne le dépasse.
 
-Une subtilité que l'article ne relève pas explique une part de la divergence entre conventions : à la première barre, la moyenne pondérée n'a qu'une observation, donc elle *est* le prix de cette barre. Avec la convention de la clôture, la comparaison annoncée pour 9 h 31 donne zéro sur 1 335 des 1 428 séances, et la position ne s'y prend qu'à 9 h 32. Sur les 93 autres, l'écart n'est pas nul, mais il vaut au plus 5,7 × 10⁻¹⁴ dollar, le dernier bit d'un prix en virgule flottante. C'est un résidu de la division, et non une information de marché.
+Une subtilité que l'article ne relève pas explique une part de la divergence entre conventions : à la première barre, la moyenne pondérée n'a qu'une observation, donc elle *est* le prix de cette barre. Avec la convention de la clôture, la comparaison annoncée pour 9 h 31 donne zéro sur 1 335 des 1 428 séances, et la position ne s'y prend qu'à 9 h 32. Sur les 93 autres, l'écart n'est pas nul, mais il vaut au plus 5,7 × 10⁻¹⁴ dollar, le dernier bit d'un prix en virgule flottante. C'est un résidu de la division, et non une information de marché. Le compte des trois conventions est publié dans #raw("results/tables/premiere_comparaison.csv").
 
 #figure(image("../results/figures/courbes.png", width: 100%), caption: [La courbe de capital selon le glissement facturé])
 
@@ -250,13 +250,13 @@ La stratégie change de position *15,9 fois par jour*. Un renversement échange 
     [84,4 %],
 )
 
-Comment lire ce tableau, en trois constats. Le premier est que le seuil qui annule le rendement vaut *1,02 cent par passage*, cherché par bissection et non interpolé. Le résultat de l'article tient donc tout entier dans l'hypothèse de franchir seize fois par jour, sans rien payer, un écart d'un cent. Le deuxième est que le pire creux passe de 9,3 % à 46,5 % au même seuil : la stratégie perd son rendement et aussi la propriété qui la rendait attirante. Le troisième est ce que le tableau ne dit pas. Un demi-cent laisse encore 19 % par an, donc la stratégie garde de la valeur, et le verdict porte sur une grandeur que l'article a posée à zéro sans la discuter.
+Comment lire ce tableau, en trois constats. Le premier est que le seuil qui annule le rendement vaut *1,02 cent par passage*, cherché par bissection et non interpolé. Ce cent se facture sur chaque action échangée, donc il répond à un écart acheteur-vendeur de deux cents quand l'exécution se fait au milieu. Le résultat de l'article tient tout entier dans l'hypothèse de franchir un tel écart seize fois par jour, sans rien payer. Le deuxième est que le pire creux passe de 9,3 % à 46,5 % à un cent, le point mesuré le plus proche du seuil : la stratégie perd son rendement et aussi la propriété qui la rendait attirante. Le troisième est ce que le tableau ne dit pas. Un demi-cent laisse encore 19 % par an, donc la stratégie garde de la valeur, et le verdict porte sur une grandeur que l'article a posée à zéro sans la discuter.
 
 Ce cent auquel le seuil se compare n'est pas mesuré ici. Les barres d'une minute ne portent que des transactions, jamais les cotations dont l'écart acheteur-vendeur se déduit. Il sert de repère de lecture, et le tableau des limites le dit.
 
 #figure(image("../results/figures/seuil.png", width: 100%), caption: [Le rendement annualisé contre le glissement])
 
-Comment lire cette figure : deux courbes, l'échantillon de l'article et la période qui suit sa fermeture. Chaque courbe coupe le zéro là où son seuil se trouve, et le trait vertical marque un cent.
+Comment lire cette figure : deux courbes, l'échantillon de l'article et la période qui suit sa fermeture. Chaque trait relie les six points mesurés, donc son passage à zéro est interpolé, et le seuil cherché par bissection tombe un peu à sa gauche. Le trait vertical marque un cent.
 
 === 5.4 Après la fermeture de l'échantillon, le rendement tombe de quatre cinquièmes
 
@@ -459,7 +459,7 @@ Le critère de la ligne des séances est déclaré et se vérifie sur #raw("sean
 
 == 6. Reproduire
 
-#raw("uv sync --locked --all-extras\nuv run pytest                 # 28 tests fermés, sans réseau ni données de marché\nuv run vwp fetch              # QQQ et TQQQ, barres d'une minute, environ 4 millions\nuv run vwp tout               # les neuf tableaux et les cinq figures", block: true, lang: "bash")
+#raw("uv sync --locked --all-extras\nuv run pytest                 # 29 tests fermés, sans réseau ni données de marché\nuv run vwp fetch              # QQQ et TQQQ, barres d'une minute, environ 4 millions\nuv run vwp tout               # les dix tableaux et les cinq figures", block: true, lang: "bash")
 
 Le téléchargement demande une clé Alpaca, à poser dans l'environnement ou dans un fichier local que le client partagé lit. Les tests tournent sur des séances fabriquées dont chaque réponse se calcule de tête. Les chiffres recalculés viennent des fichiers de #raw("results/"), et ceux que l'article publie sont recopiés dans #raw("src/vwp/reference.py"). Quelques nombres se mesurent ailleurs, et les voici. Les deux mesures du flux d'IEX viennent du dépôt voisin 24. La taille et la pagination du PDF sont relevées sur le fichier lui-même. La grille de 391 minutes, les 67 séances de TQQQ à 390 et les mois des onze séances qui manquent à ce fonds se comptent dans les barres téléchargées. Le nombre de barres et le nombre de tests se lisent à l'exécution.
 
@@ -496,6 +496,8 @@ Le téléchargement demande une clé Alpaca, à poser dans l'environnement ou da
     [déclaré ; une exécution réelle passerait par le carnet d'ordres, ce que le glissement facturé approche sans le modéliser],
     [Le fonds à levier porte un coût de financement non modélisé],
     [reconnu ; il est dans le prix du fonds, donc dans les rendements employés, mais il n'est pas isolé],
+    [Le rendement annuel rapporte les séances gardées à 252, et non les séances du calendrier],
+    [mesuré ; le filtre retire 17 des 1 445 séances de la fenêtre de l'article, et compter les 1 445 donnerait 39,96 % au lieu de 40,52 %, et 15,28 % au lieu de 15,47 % au repère passif],
     [La fenêtre postérieure ne compte que 724 séances],
     [déclaré ; c'est peu pour trancher, et le verdict porte sur l'ordre de grandeur, non sur la décimale],
 )

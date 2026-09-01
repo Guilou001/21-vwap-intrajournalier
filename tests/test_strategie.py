@@ -178,9 +178,9 @@ def test_la_commission_double_quand_le_capital_double():
 
 
 def test_le_glissement_se_facture_a_chaque_passage():
-    """Le facturer une seule fois par changement diviserait le coût par deux, ce qui déplacerait le
-    seuil publié de 1,03 à 1,99 cent. Le test précédent en fixe le montant ; celui-ci vérifie le
-    signe et l'ordre sur une séance qui change de position à chaque minute."""
+    """Le facturer une seule fois par changement diviserait presque le coût par deux, ce qui
+    déplacerait le seuil publié de 1,02 à 1,93 cent. Le test précédent en fixe le montant ;
+    celui-ci vérifie le signe et l'ordre sur une séance qui change de position à chaque minute."""
     prix = [100.0, 101.0, 99.0, 101.0, 99.0] * 79
     barres = strategie.seances(seance("2026-06-15", prix[:391]))
     s = strategie.signaux(barres, "cloture")

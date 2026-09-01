@@ -84,3 +84,22 @@ def test_les_deux_fenetres_se_partagent_les_seances_sans_recouvrement():
     assert min(dehors) == dt.date(2023, 9, 29)
     assert min(dehors) < reference.PUBLICATION
     assert len([j for j in dehors if j < reference.PUBLICATION]) > 0
+
+
+def test_la_premiere_comparaison_est_nulle_a_la_cloture_et_pas_aux_extremes():
+    """La moyenne pondérée de la première barre est le prix de cette barre. Avec la convention de la
+    clôture, la comparaison porte donc sur deux nombres égaux ; avec celle des extrêmes, la clôture
+    et la moyenne des trois prix diffèrent dès que la barre n'est pas symétrique. Ici le haut est à
+    0,90 $ au-dessus de la clôture et le bas à 0,30 $ en dessous, donc l'écart vaut 0,20 $."""
+    prix = list(np.linspace(100.0, 110.0, 391))
+    barres = strategie.seances(seance("2026-06-15", prix))
+    barres = barres.assign(haut=barres["cloture"] + 0.9, bas=barres["cloture"] - 0.3)
+    a_la_cloture = etudes.compter_la_premiere_comparaison(
+        strategie.signaux(barres, "cloture"), "cloture")
+    aux_extremes = etudes.compter_la_premiere_comparaison(
+        strategie.signaux(barres, "typique"), "typique")
+    assert a_la_cloture == {"convention": "cloture", "seances": 1, "seances_a_ecart_nul": 1,
+                            "seances_a_residu": 0, "residu_maximal_dollars": 0.0}
+    assert aux_extremes["seances_a_ecart_nul"] == 0
+    assert aux_extremes["seances_a_residu"] == 1
+    assert aux_extremes["residu_maximal_dollars"] == pytest.approx(0.2)

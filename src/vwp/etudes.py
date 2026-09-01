@@ -64,7 +64,8 @@ def conventions(symbole: str = "QQQ", cache=donnees.CACHE) -> pd.DataFrame:
     """Ce que coûte le choix du prix qui entre dans la moyenne pondérée.
 
     L'article ne le dit pas. Les trois conventions usuelles donnent trois résultats, et l'écart
-    entre la plus haute et la plus basse dépasse le rendement du fonds sur toute la période.
+    entre la plus haute et la plus basse vaut soixante-quatorze points de rendement total, soit
+    près de trois cinquièmes des cent vingt-six points que le fonds rapporte sur la même fenêtre.
     """
     lignes = []
     for convention in CONVENTIONS:
@@ -72,6 +73,37 @@ def conventions(symbole: str = "QQQ", cache=donnees.CACHE) -> pd.DataFrame:
         dedans = _fenetre(table, reference.DEBUT_ECHANTILLON, reference.FIN_ECHANTILLON)
         mesures = strategie.rejouer(dedans).mesures(reference.CAPITAL_INITIAL)
         lignes.append({"convention": convention, **mesures})
+    return pd.DataFrame(lignes)
+
+
+def compter_la_premiere_comparaison(sous: pd.DataFrame, convention: str) -> dict:
+    """Ce que vaut la comparaison de la première barre, sur une table de signaux déjà découpée.
+
+    À la première barre, la moyenne pondérée n'a qu'une observation : elle **est** le prix de cette
+    barre dès que la convention prend ce même prix. La comparaison que l'article annonce pour
+    9 h 31 porte alors sur deux nombres égaux, et la position ne se prend qu'à la barre suivante.
+    Trois colonnes le mesurent : les séances où l'égalité est exacte, celles où la division laisse
+    un résidu, et le plus gros de ces résidus.
+    """
+    premiere = sous[sous.groupby("seance").cumcount() == 0]
+    ecart = (premiere["cloture"] - premiere["vwap"]).abs()
+    return {"convention": convention, "seances": int(len(premiere)),
+            "seances_a_ecart_nul": int((ecart == 0).sum()),
+            "seances_a_residu": int((ecart != 0).sum()),
+            "residu_maximal_dollars": float(ecart.max())}
+
+
+def premiere_comparaison(symbole: str = "QQQ", cache=donnees.CACHE) -> pd.DataFrame:
+    """Le compte de la première comparaison, convention par convention, sur la fenêtre de l'article.
+
+    C'est une des raisons pour lesquelles les trois conventions ne donnent pas le même résultat :
+    l'une d'elles ouvre la séance une minute plus tard que les deux autres.
+    """
+    lignes = []
+    for convention in CONVENTIONS:
+        table = preparer(symbole, convention, cache)
+        dedans = _fenetre(table, reference.DEBUT_ECHANTILLON, reference.FIN_ECHANTILLON)
+        lignes.append(compter_la_premiere_comparaison(dedans, convention))
     return pd.DataFrame(lignes)
 
 
@@ -102,8 +134,8 @@ def seuil_exact(sous: pd.DataFrame, borne_haute: float = 4.0,
     linéaire en glissement, le capital étant composé sur des milliers de passages. Sur l'échantillon
     de l'article, les deux points qui encadrent le zéro sont écartés d'un cent entier, et
     l'interpolation y surestime le seuil de trois centièmes de cent, dans le sens qui flatte la
-    stratégie. La bissection rejoue la stratégie à chaque essai : elle coûte une trentaine de
-    rejeux et ne dépend d'aucune hypothèse de forme.
+    stratégie. La bissection rejoue la stratégie à chaque essai : aux réglages par défaut elle
+    coûte dix-huit rejeux, deux bornes et seize partages, et ne dépend d'aucune hypothèse de forme.
     """
     def rendement(cents: float) -> float:
         return strategie.rejouer(sous, glissement_cents=cents).mesures(

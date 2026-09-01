@@ -44,6 +44,9 @@ def replication() -> None:
                       "volatilite", "sharpe", "pire_creux", "changements_par_jour"]]
                .to_string(index=False))
     _ecrire(table, "conventions")
+    premiere = etudes.premiere_comparaison()
+    typer.echo("\n" + premiere.to_string(index=False))
+    _ecrire(premiere, "premiere_comparaison")
     figures.conventions(table, reference.TABLE_UN["VWAP TT (QQQ)"]["total"])
 
 

@@ -12,7 +12,8 @@ court sinon, et l'on solde à la clôture. Toute la position à chaque fois, san
 choisit pas. La clôture de chaque minute, la moyenne des deux extrêmes et de la clôture, ou la
 moyenne pondérée que le fournisseur calcule dans la barre elle-même. Ce module les offre toutes les
 trois, et `etudes.py` mesure ce que le choix coûte : soixante-quatorze points de rendement total,
-plus que ne rapporte le fonds sur toute la période.
+soit près de trois cinquièmes des cent vingt-six points que le fonds rapporte sur la fenêtre de
+l'article.
 
 **Une subtilité que l'article ne relève pas.** À la première barre, la moyenne pondérée n'a qu'une
 observation : elle **est** le prix de cette barre. Avec la convention de la clôture, la comparaison
@@ -26,7 +27,8 @@ ne donnent pas le même résultat.
 **Le glissement, que l'article met à zéro.** Le glissement, l'écart entre le prix visé et le prix
 réellement obtenu, se paie à chaque passage. Passer d'une position à l'autre demande de vendre le
 double de ce qu'on détient. La stratégie le fait seize fois par jour en moyenne. Facturer chaque
-passage d'un demi-cent suffit à ramener le rendement de l'article au tiers.
+passage d'un demi-cent ramène le rendement total de 587 % à 168 %, et le rendement annuel de
+40,5 % à 19,0 %.
 
 **La commission, elle, est celle de l'article.** Il déclare 0,0005 $ par action, et tous les
 résultats de ce dépôt la portent. Ce qui est mis à zéro puis facturé ici, c'est le glissement seul.
@@ -42,9 +44,7 @@ import pandas as pd
 OUVERTURE = pd.Timestamp("09:30").time()
 FERMETURE = pd.Timestamp("16:00").time()
 BARRES_MINIMALES = 390
-GRILLE_COMPLETE = 391
 SEANCES_PAR_AN = 252
-PRIX_DE_LA_MOYENNE = {"cloture": "cloture", "typique": None, "barre": "prix_moyen"}
 
 
 def seances(barres: pd.DataFrame, fuseau: str = "America/New_York") -> pd.DataFrame:
