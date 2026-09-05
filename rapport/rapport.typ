@@ -1,4 +1,4 @@
-#set document(title: "La stratégie qui transforme 25 000 dollars en 2 millions en perd si l'on paie un demi-cent", author: "Guillaume Vaudescal")
+#set document(title: "Une stratégie intrajournalière survit-elle à un demi-cent de coût ?", author: "Guillaume Vaudescal")
 #set page(
   paper: "a4",
   margin: (x: 2.2cm, y: 2.4cm),
@@ -30,22 +30,30 @@
 
 #align(center)[
   #block(width: 100%)[
-    #text(size: 18pt, weight: "bold")[La stratégie qui transforme 25 000 dollars en 2 millions en perd si l'on paie un demi-cent]
+    #text(size: 18pt, weight: "bold")[Une stratégie intrajournalière survit-elle à un demi-cent de coût ?]
     #v(0.6em)
-    #text(size: 10pt, fill: luma(70))[Guillaume Vaudescal · 2026-08-31 · #link("https://github.com/Guilou001/21-vwap-intrajournalier")[Guilou001/21-vwap-intrajournalier]]
+    #text(size: 10pt, fill: luma(70))[Guillaume Vaudescal · 2026-09-04 · #link("https://github.com/Guilou001/21-vwap-intrajournalier")[Guilou001/21-vwap-intrajournalier]]
   ]
 ]
 #v(1.2em)
 #line(length: 100%, stroke: 0.6pt + luma(190))
 #v(0.8em)
 
-Un article très lu annonce qu'un signal fondé sur le prix moyen pondéré par les volumes aurait transformé 25 000 dollars en 192 656 sur six ans, et en 2 millions avec un fonds à levier. Il suppose que le glissement, l'écart entre le prix visé et le prix réellement obtenu, est nul. La stratégie change de position *seize fois par jour* : ce dépôt mesure ce que cette hypothèse vaut.
+Une stratégie peut afficher un rendement élevé lorsqu'elle suppose que chaque ordre est exécuté exactement au prix observé. Cette hypothèse devient importante lorsque le portefeuille change de direction plusieurs fois dans la même journée. Le présent projet reproduit un signal fondé sur le prix moyen payé depuis l'ouverture, puis mesure le coût maximal qu'il peut supporter.
 
-*Le résultat.* Le repère passif de l'article se reproduit *à trois centièmes de point près*, ce qui atteste les données. Sa stratégie active se reproduit à 587 % contre 671 % publiés, avec un ratio de Sharpe de 2,01 contre 2,10. Mais elle s'annule à *1,02 cent* de glissement par passage. Après la fermeture de son échantillon, elle s'annule à *0,41 cent*, et son rendement annuel tombe de 40,5 % à *7,0 %* avant tout glissement.
+L'article étudié annonce qu'un capital de 25 000 dollars aurait atteint 192 656 dollars sur le fonds QQQ et plus de deux millions avec un fonds trois fois plus sensible. La règle change toutefois de position environ seize fois par séance, ce qui oblige à franchir fréquemment l'écart entre les prix acheteur et vendeur.
+
+*Résultat principal.* Le placement passif de l'article est reproduit à 0,03 point de pourcentage près, tandis que la stratégie active atteint 587 %, contre 671 % publiés. Son ratio de Sharpe vaut 2,01, contre 2,10 dans l'article. Toutefois, un coût de 1,02 cent par exécution annule tout le rendement dans la période étudiée. Après cette période, le seuil tombe à 0,41 cent et le rendement annuel sans glissement passe de 40,5 % à 7,0 %.
+
+Afin d'expliquer cette fragilité, nous présenterons d'abord la règle de négociation et les résultats annoncés dans l'article. Dans un deuxième temps, nous décrirons les données d'une minute et les conventions de prix. Ensuite, nous reproduirons la stratégie avant de lui appliquer plusieurs coûts et périodes. Enfin, nous examinerons les années antérieures, les contrôles de robustesse et la procédure de reproduction.
+
+Le rapport détaillé est disponible en PDF : #link("rapport/rapport.pdf")[rapport/rapport.pdf].
+
+== Résumé en anglais
 
 _Summary in English. Zarattini and Aziz (SSRN 4631351) report that a VWAP trend-following day trading system would have turned \$25,000 into \$192,656 on QQQ between January 2018 and September 2023, a 671 % return with a 2.1 Sharpe ratio and a 9.4 % maximum drawdown, and into \$2,085,417 using the 3x leveraged TQQQ. Their backtest assumes zero slippage; it does charge the \$0.0005 per share commission they declare, and so does this replication. Replaying the published rules on consolidated one-minute bars: the passive benchmark reproduces to within 0.03 percentage points, confirming the data and window; the active strategy reaches 587 % with a 2.01 Sharpe and a 9.3 % drawdown. It flips position 15.9 times per session. Charging 1.02 cents of slippage per fill wipes the entire in-sample return. After the sample closes the break-even is 0.41 cents and the zero-slippage annual return falls from 40.5 % to 7.0 %. On TQQQ the replication ends at \$1,643,784 where the paper reports \$2,085,417, and half a cent leaves \$21,721 of the \$25,000 start, a 13 % loss. Finally, the two years immediately preceding the paper's sample, 2016 and 2017, are both negative._
 
-== 1. La question posée
+== 1. La question en détail
 
 *Le signal, en mots simples.* À chaque minute, on divise tout l'argent échangé depuis l'ouverture par toutes les actions échangées. Le résultat est le prix moyen payé depuis le matin. Si le prix du moment est au-dessus, les acheteurs paient plus cher que la moyenne du jour, ce que l'article lit comme un déséquilibre en faveur de la hausse.
 

@@ -1,19 +1,21 @@
-# La stratégie qui transforme 25 000 dollars en 2 millions en perd si l'on paie un demi-cent
+# Une stratégie intrajournalière survit-elle à un demi-cent de coût ?
 
-Un article très lu annonce qu'un signal fondé sur le prix moyen pondéré par les volumes aurait
-transformé 25 000 dollars en 192 656 sur six ans, et en 2 millions avec un fonds à levier. Il suppose
-que le glissement, l'écart entre le prix visé et le prix réellement obtenu, est nul. La stratégie
-change de position **seize fois par jour** : ce dépôt mesure ce que cette hypothèse vaut.
+Une stratégie peut afficher un rendement élevé lorsqu'elle suppose que chaque ordre est exécuté exactement au prix observé. Cette hypothèse devient importante lorsque le portefeuille change de direction plusieurs fois dans la même journée. Le présent projet reproduit un signal fondé sur le prix moyen payé depuis l'ouverture, puis mesure le coût maximal qu'il peut supporter.
+
+L'article étudié annonce qu'un capital de 25 000 dollars aurait atteint 192 656 dollars sur le fonds QQQ et plus de deux millions avec un fonds trois fois plus sensible. La règle change toutefois de position environ seize fois par séance, ce qui oblige à franchir fréquemment l'écart entre les prix acheteur et vendeur.
+
+**Résultat principal.** Le placement passif de l'article est reproduit à 0,03 point de pourcentage près, tandis que la stratégie active atteint 587 %, contre 671 % publiés. Son ratio de Sharpe vaut 2,01, contre 2,10 dans l'article. Toutefois, un coût de 1,02 cent par exécution annule tout le rendement dans la période étudiée. Après cette période, le seuil tombe à 0,41 cent et le rendement annuel sans glissement passe de 40,5 % à 7,0 %.
+
+Afin d'expliquer cette fragilité, nous présenterons d'abord la règle de négociation et les résultats annoncés dans l'article. Dans un deuxième temps, nous décrirons les données d'une minute et les conventions de prix. Ensuite, nous reproduirons la stratégie avant de lui appliquer plusieurs coûts et périodes. Enfin, nous examinerons les années antérieures, les contrôles de robustesse et la procédure de reproduction.
 
 [![ci](https://github.com/Guilou001/21-vwap-intrajournalier/actions/workflows/ci.yml/badge.svg)](https://github.com/Guilou001/21-vwap-intrajournalier/actions/workflows/ci.yml)
 ![python](https://img.shields.io/badge/python-3.12-blue)
 ![licence](https://img.shields.io/badge/code-MIT-green)
 
-**Le résultat.** Le repère passif de l'article se reproduit **à trois centièmes de point près**, ce
-qui atteste les données. Sa stratégie active se reproduit à 587 % contre 671 % publiés, avec un
-ratio de Sharpe de 2,01 contre 2,10. Mais elle s'annule à **1,02 cent** de glissement par passage.
-Après la fermeture de son échantillon, elle s'annule à **0,41 cent**, et son rendement annuel tombe
-de 40,5 % à **7,0 %** avant tout glissement.
+Le rapport détaillé est disponible en PDF : [rapport/rapport.pdf](rapport/rapport.pdf).
+
+<details>
+<summary>Résumé en anglais</summary>
 
 *Summary in English. Zarattini and Aziz (SSRN 4631351) report that a VWAP trend-following day trading
 system would have turned $25,000 into $192,656 on QQQ between January 2018 and September 2023, a 671 %
@@ -28,7 +30,8 @@ After the sample closes the break-even is 0.41 cents and the zero-slippage annua
 half a cent leaves $21,721 of the $25,000 start, a 13 % loss. Finally, the two years immediately
 preceding the paper's sample, 2016 and 2017, are both negative.*
 
-## 1. La question posée
+</details>
+## 1. La question en détail
 
 **Le signal, en mots simples.** À chaque minute, on divise tout l'argent échangé depuis l'ouverture
 par toutes les actions échangées. Le résultat est le prix moyen payé depuis le matin. Si le prix du
